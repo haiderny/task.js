@@ -1,53 +1,56 @@
 import cp from 'child_process';
 import GeneralWorker from '../GeneralWorker';
+import {Worker} from 'webworker-threads';
 
 class NodeWorker extends GeneralWorker {
 	constructor ($config) {
 		super(...arguments);
 
-		$config = $config || {};
-
-		this._worker = cp.fork(`${__dirname}/EvalWorker.js`);
-		this._worker.on('message', this._onMessage);
-		this._worker.on('exit', this._onExit);
-		this._worker.on('close', this._onExit);
-		this._worker.on('disconnect', this._onExit);
-		this._worker.on('error', this._onExit);
-		this._alive = true;
+		this._worker = new Worker(this.WORKER_SOURCE);
+		this._worker.onmessage = this._onMessage;
 
 		this._log(`initialized`);
 	}
 
-	_log = (message) => {
+	_log (message) {
 		if (this._debug) {
-			this._logger(`task.js:worker[mid(${this.managerId}) wid(${this.id}) pid(${this._worker.pid})]: ${message}`);
+			this._logger(`task.js:worker[mid(${this.managerId}) wid(${this.id})]: ${message}`);
 		}
 	}
 
-	_onExit = () => {
-		if (!this._alive) {
-			return;
+	WORKER_SOURCE = function () {
+		this.onmessage = function (event) {
+			var message = event.data;
+
+			var args = Object.keys(message).filter(function (key) {
+				return key.match(/^argument/);
+			}).sort(function (a, b) {
+				return parseInt(a.slice(8), 10) - parseInt(b.slice(8), 10);
+			}).map(function (key) {
+				return message[key];
+			});
+
+			try {
+				postMessage({id: message.id, result: eval('(' + message.func + ')').apply(null, args)});
+			} catch (error) {
+				postMessage({id: message.id, error: error.message});
+			}
 		}
+	};
 
-		this._log(`killed`);
-
-		this._alive = false;
-
-		this.handleWorkerExit();
-	}
-
-	_onMessage = (message) => {
+	_onMessage = (event) => {
+		let message = event.data;
 		this.handleWorkerMessage(message);
 	}
 
-	postMessage = (message) => {
+	postMessage = (message, options) => {
 		this._log(`sending tid(${message.id}) to worker process`);
-		this._worker.send(message);
+		this._worker.postMessage(message, options);
 	}
 
 	terminate = () => {
 		this._log(`terminated`);
-		this._worker.kill();
+		this._worker.terminate();
 	}
 }
 

@@ -111,8 +111,27 @@ var WorkerManager = function () {
 
 		if (!task.callback) {
 			return new Promise(function (resolve, reject) {
-				task.resolve = resolve;
-				task.reject = reject;
+				// BUG: no idea why i need to do this...
+				//
+				// when using bluebird this doesnt happen
+				task.resolve = function () {
+					for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+						args[_key] = arguments[_key];
+					}
+
+					setTimeout(function (resolve) {
+						resolve.apply(undefined, args);
+					}, 0, resolve);
+				};
+				task.reject = function () {
+					for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+						args[_key2] = arguments[_key2];
+					}
+
+					setTimeout(function (reject) {
+						reject.apply(undefined, args);
+					}, 0, reject);
+				};
 				this._queue.push(task);
 				this._next();
 			}.bind(this));

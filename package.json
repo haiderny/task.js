@@ -30,5 +30,8 @@
     "karma-sauce-launcher": "^1.0.0",
     "karma-webpack": "^1.7.0",
     "webpack": "^1.13.1"
+  },
+  "dependencies": {
+    "webworker-threads": "^0.7.8"
   }
 }

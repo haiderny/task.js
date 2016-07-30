@@ -8,6 +8,8 @@ var _GeneralWorker2 = require('../GeneralWorker');
 
 var _GeneralWorker3 = _interopRequireDefault(_GeneralWorker2);
 
+var _webworkerThreads = require('webworker-threads');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
@@ -26,51 +28,53 @@ var NodeWorker = function (_GeneralWorker) {
 
 		var _this = _possibleConstructorReturn(this, _GeneralWorker.apply(this, arguments));
 
-		_this._log = function (message) {
-			if (_this._debug) {
-				_this._logger('task.js:worker[mid(' + _this.managerId + ') wid(' + _this.id + ') pid(' + _this._worker.pid + ')]: ' + message);
-			}
+		_this.WORKER_SOURCE = function () {
+			this.onmessage = function (event) {
+				var message = event.data;
+
+				var args = Object.keys(message).filter(function (key) {
+					return key.match(/^argument/);
+				}).sort(function (a, b) {
+					return parseInt(a.slice(8), 10) - parseInt(b.slice(8), 10);
+				}).map(function (key) {
+					return message[key];
+				});
+
+				try {
+					postMessage({ id: message.id, result: eval('(' + message.func + ')').apply(null, args) });
+				} catch (error) {
+					postMessage({ id: message.id, error: error.message });
+				}
+			};
 		};
 
-		_this._onExit = function () {
-			if (!_this._alive) {
-				return;
-			}
-
-			_this._log('killed');
-
-			_this._alive = false;
-
-			_this.handleWorkerExit();
-		};
-
-		_this._onMessage = function (message) {
+		_this._onMessage = function (event) {
+			var message = event.data;
 			_this.handleWorkerMessage(message);
 		};
 
-		_this.postMessage = function (message) {
+		_this.postMessage = function (message, options) {
 			_this._log('sending tid(' + message.id + ') to worker process');
-			_this._worker.send(message);
+			_this._worker.postMessage(message, options);
 		};
 
 		_this.terminate = function () {
 			_this._log('terminated');
-			_this._worker.kill();
+			_this._worker.terminate();
 		};
 
-		$config = $config || {};
-
-		_this._worker = _child_process2.default.fork(__dirname + '/EvalWorker.js');
-		_this._worker.on('message', _this._onMessage);
-		_this._worker.on('exit', _this._onExit);
-		_this._worker.on('close', _this._onExit);
-		_this._worker.on('disconnect', _this._onExit);
-		_this._worker.on('error', _this._onExit);
-		_this._alive = true;
+		_this._worker = new _webworkerThreads.Worker(_this.WORKER_SOURCE);
+		_this._worker.onmessage = _this._onMessage;
 
 		_this._log('initialized');
 		return _this;
 	}
+
+	NodeWorker.prototype._log = function _log(message) {
+		if (this._debug) {
+			this._logger('task.js:worker[mid(' + this.managerId + ') wid(' + this.id + ')]: ' + message);
+		}
+	};
 
 	return NodeWorker;
 }(_GeneralWorker3.default);

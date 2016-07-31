@@ -9,7 +9,7 @@ This modules is intended to make working with blocking tasks a bit easier, and i
 
 ```
 # node
-npm install task.js
+npm install task.js_threads
 ```
 
 or

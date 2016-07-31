@@ -1,4 +1,4 @@
-/*! task.js - 0.0.17 - clientside */
+/*! task.js_threads - 0.0.17 - clientside */
 var task =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -243,7 +243,7 @@ var task =
 					// BUG: no idea why i need to do this...
 					//
 					// when using bluebird this doesnt happen
-					task.resolve = function () {
+					task.resolve = typeof window === 'undefined' ? function () {
 						for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 							args[_key] = arguments[_key];
 						}
@@ -251,8 +251,8 @@ var task =
 						setTimeout(function (resolve) {
 							resolve.apply(undefined, args);
 						}, 0, resolve);
-					};
-					task.reject = function () {
+					} : resolve;
+					task.reject = typeof window === 'undefined' ? function () {
 						for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
 							args[_key2] = arguments[_key2];
 						}
@@ -260,7 +260,7 @@ var task =
 						setTimeout(function (reject) {
 							reject.apply(undefined, args);
 						}, 0, reject);
-					};
+					} : reject;
 					this._queue.push(task);
 					this._next();
 				}.bind(this));

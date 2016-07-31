@@ -1,5 +1,5 @@
 {
-  "name": "task.js",
+  "name": "task.js_threads",
   "version": "0.0.17",
   "description": "Simplified interface for getting code to run on different cores (node.js, and web)",
   "main": "index.js",

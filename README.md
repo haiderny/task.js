@@ -3,6 +3,8 @@ This modules is intended to make working with blocking tasks a bit easier, and i
 
 ## [live example](http://codepen.io/icodeforlove/full/ZOjBBB/)
 
+**This branch uses the webworker-threads module instead of forking**
+
 ## install
 
 ```

@@ -114,7 +114,7 @@ var WorkerManager = function () {
 				// BUG: no idea why i need to do this...
 				//
 				// when using bluebird this doesnt happen
-				task.resolve = function () {
+				task.resolve = typeof window === 'undefined' ? function () {
 					for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 						args[_key] = arguments[_key];
 					}
@@ -122,8 +122,8 @@ var WorkerManager = function () {
 					setTimeout(function (resolve) {
 						resolve.apply(undefined, args);
 					}, 0, resolve);
-				};
-				task.reject = function () {
+				} : resolve;
+				task.reject = typeof window === 'undefined' ? function () {
 					for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
 						args[_key2] = arguments[_key2];
 					}
@@ -131,7 +131,7 @@ var WorkerManager = function () {
 					setTimeout(function (reject) {
 						reject.apply(undefined, args);
 					}, 0, reject);
-				};
+				} : reject;
 				this._queue.push(task);
 				this._next();
 			}.bind(this));

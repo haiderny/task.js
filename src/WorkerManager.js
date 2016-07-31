@@ -71,16 +71,16 @@ class WorkerManager {
 				// BUG: no idea why i need to do this...
 				//
 				// when using bluebird this doesnt happen
-				task.resolve = function (...args) {
+				task.resolve = typeof window === 'undefined' ? function (...args) {
 					setTimeout((resolve) => {
 						resolve(...args);
 					}, 0, resolve);
-				};
-				task.reject = function (...args) {
+				} : resolve;
+				task.reject = typeof window === 'undefined' ? function (...args) {
 					setTimeout((reject) => {
 						reject(...args);
 					}, 0, reject);
-				};
+				} : reject;
 				this._queue.push(task);
 				this._next();
 			}.bind(this));

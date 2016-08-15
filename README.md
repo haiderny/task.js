@@ -1,7 +1,7 @@
 # task.js [![Build Status](https://img.shields.io/travis/icodeforlove/task.js.svg?branch=master)](https://travis-ci.org/icodeforlove/task.js) [![Code Climate](https://img.shields.io/codeclimate/github/icodeforlove/task.js.svg)](https://codeclimate.com/github/icodeforlove/task.js)
 This modules is intended to make working with blocking tasks a bit easier, and is meant to work in node as well as the browser.
 
-## [live example](http://codepen.io/icodeforlove/full/ZOjBBB/)
+**[LIVE DEMO](http://s.codepen.io/icodeforlove/debug/ZOjBBB)**
 
 **This branch uses the webworker-threads module instead of forking**
 
@@ -19,7 +19,7 @@ or
 bower install task
 ```
 
-or just grab the [cdnjs hosted version](https://cdnjs.cloudflare.com/ajax/libs/task.js/0.0.17/task.min.js) directly
+or just grab the [cdnjs hosted version](https://cdnjs.cloudflare.com/ajax/libs/task.js/0.0.18/task.min.js) directly
 
 ## important
 
@@ -174,6 +174,18 @@ task.defaults({
 ```
 
 Keep in mind that it is ok to have a slow initialize, no work will actually be processed until there is a fully initialized worker.
+
+## task.setGlobals
+
+You can set globals across all of your workers like this
+
+```javascript
+task.setGlobals({
+	data: {one: 1}
+});
+```
+
+The above will kill all current workers, create new ones, and then assign the new workers the outstanding tasks.
 
 ## compatibility
 
